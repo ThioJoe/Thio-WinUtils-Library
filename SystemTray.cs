@@ -24,20 +24,36 @@ namespace ThioWinUtils // Change this to your desired namespace
     /// <param name="createContextMenuAction">Action to execute on right-click to show a context menu. Can be null.</param>
     /// /// <param name="restoreAction">Action to execute on left-click (e.g., show window). If null, will default to showing the hwndInput window if provided.</param>
     /// <param name="hwndInput">Optional handle of an existing window to receive messages. If IntPtr.Zero, a hidden window is created.</param>
-    public class SystemTray(
-         Icon icon,
-         string tooltipText,
-         Action<IntPtr, SystemTray>? createContextMenuAction,
-         Action? restoreAction = null,
-         IntPtr hwndInput = default
-            ) : IDisposable
+    public class SystemTray : IDisposable
     {
-        // Configuration passed via constructor
-        private readonly Icon _icon = icon ?? throw new ArgumentNullException(nameof(icon));
-        private readonly string _tooltipText = tooltipText ?? string.Empty;
-        private readonly Action? _restoreAction = restoreAction;
-        private readonly Action<IntPtr, SystemTray>? _createContextMenuAction = createContextMenuAction;
-        private readonly IntPtr _hwndInput = hwndInput;
+        // Constructor
+        public SystemTray(
+            Icon icon,
+            string tooltipText,
+            Action<IntPtr, SystemTray>? createContextMenuAction,
+            Action? restoreAction = null,
+            IntPtr hwndInput = default
+            )
+        {
+            // Validate icon and tooltip text
+            if (icon == null) throw new ArgumentNullException(nameof(icon));
+            if (string.IsNullOrEmpty(tooltipText)) throw new ArgumentNullException(nameof(tooltipText));
+            // Assign parameters
+            _icon = icon;
+            _tooltipText = tooltipText;
+            _restoreAction = restoreAction;
+            _createContextMenuAction = createContextMenuAction;
+            _hwndInput = hwndInput;
+
+            // Initialize the system tray icon
+            Initialize();
+        }
+
+        private readonly Icon _icon;
+        private readonly string _tooltipText;
+        private readonly Action? _restoreAction;
+        private readonly Action<IntPtr, SystemTray>? _createContextMenuAction;
+        private readonly IntPtr _hwndInput;
 
         // Internal state
         private NOTIFYICONDATAW _notifyIconData;
@@ -255,9 +271,9 @@ namespace ThioWinUtils // Change this to your desired namespace
             // If called from a non-STA thread, window creation/messaging can fail.
             if (Thread.CurrentThread.GetApartmentState() != ApartmentState.STA)
             {
-                Debug.WriteLine("Warning: SystemTray.Initialize called from a non-STA thread. Unexpected behavior may occur.");
-                // Consider throwing an exception or forcing STA if required by your app context.
-                // Forcing STA usually involves starting a new thread.
+                Debug.WriteLine("Warning: SystemTray.Initialize called from a non-STA thread. Unexpected behavior may occur. " +
+                    "Try adding [STAThread] attribute above Main calling function");
+                throw new InvalidOperationException("SystemTray must be initialized on an STA thread.");
             }
 
 

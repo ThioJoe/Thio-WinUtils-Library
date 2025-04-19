@@ -146,10 +146,10 @@ namespace ThioWinUtils
 
         internal class MenuItemSet
         {
-            private readonly List<MenuItem> _menuItems = [];
-            public bool AnyItems => _menuItems.Count > 0;
+            internal readonly List<MenuItem> _menuItems = [];
+            internal bool AnyItems => _menuItems.Count > 0;
 
-            public void AddMenuItem(string text, bool isDisabled = false)
+            internal void AddMenuItem(string text, bool isDisabled = false)
             {
                 _menuItems.Add(
                     new MenuItem(
