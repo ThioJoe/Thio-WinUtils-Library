@@ -5,9 +5,9 @@ VisualStudioVersion = 17.14.35906.104
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThioWinUtils", "ThioWinUtils.csproj", "{F74E7A13-1FD4-4DFD-993D-B2CB39BF60CB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestExe", "TestExe\TestExe.csproj", "{8756F174-7483-4DD1-99F4-4DBDDB531D1A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestConsoleApp", "TestConsoleApp\TestConsoleApp.csproj", "{8756F174-7483-4DD1-99F4-4DBDDB531D1A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestDemo", "TestDemo\TestDemo.csproj", "{925225C9-D791-4EB9-B417-E003F7559C11}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestFormsApp", "TestFormsApp\TestFormsApp.csproj", "{925225C9-D791-4EB9-B417-E003F7559C11}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
