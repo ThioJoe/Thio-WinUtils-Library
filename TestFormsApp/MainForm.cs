@@ -19,10 +19,20 @@ namespace TestFormsApp
         {
             InitializeComponent();
 
-            // Get the default windows system icon
-            Icon icon = SystemIcons.Application;
-            ThioWinUtils.ContextMenu menu = new ThioWinUtils.ContextMenu(processRestartMenuOption: true, exitAppMenuOption: true, exitAction: ExitApp);
-            SystemTray tray = new SystemTray(icon: icon, tooltipText: "Test", createContextMenuAction: menu.Show);
+            ThioWinUtils.TrayContextMenu menu = new(
+                updateURL: "https://example.com/update",
+                appVersion: "1.0.0",
+                processRestartMenuOption: true, 
+                exitAction: ExitApp
+                );
+
+            SystemTray tray = new(
+                trayContextMenu: menu,
+                trayIcon: SystemIcons.Exclamation,
+                tooltipText: "Test App",
+                restoreAction: null,
+                hwndInput: IntPtr.Zero
+               );
         }
 
         private void ExitApp()

@@ -28,21 +28,26 @@ namespace ThioWinUtils // Change this to your desired namespace
     {
         // Constructor
         public SystemTray(
-            Icon icon,
-            string tooltipText,
-            Action<IntPtr, SystemTray>? createContextMenuAction,
+            TrayContextMenu? trayContextMenu,
+            Icon? trayIcon = null,
+            string tooltipText = "",
             Action? restoreAction = null,
             IntPtr hwndInput = default
             )
         {
+            Icon icon;
+            if (trayIcon is Icon validIcon)
+                icon = validIcon;
+            else
+                icon = SystemIcons.Application;
+
             // Validate icon and tooltip text
             if (icon == null) throw new ArgumentNullException(nameof(icon));
-            if (string.IsNullOrEmpty(tooltipText)) throw new ArgumentNullException(nameof(tooltipText));
             // Assign parameters
             _icon = icon;
             _tooltipText = tooltipText;
             _restoreAction = restoreAction;
-            _createContextMenuAction = createContextMenuAction;
+            _createContextMenuAction = trayContextMenu;
             _hwndInput = hwndInput;
 
             // Initialize the system tray icon
@@ -52,7 +57,7 @@ namespace ThioWinUtils // Change this to your desired namespace
         private readonly Icon _icon;
         private readonly string _tooltipText;
         private readonly Action? _restoreAction;
-        private readonly Action<IntPtr, SystemTray>? _createContextMenuAction;
+        private readonly TrayContextMenu? _createContextMenuAction;
         private readonly IntPtr _hwndInput;
 
         // Internal state
@@ -486,7 +491,7 @@ namespace ThioWinUtils // Change this to your desired namespace
                     case WM.RBUTTONUP:
                         Debug.WriteLine("Tray icon right-clicked.");
                         // Call the context menu action if provided
-                        _createContextMenuAction?.Invoke(hwnd, this); // Pass HWND and instance
+                        _createContextMenuAction?.Show(_hwnd, this); // Pass HWND and instance
                         return IntPtr.Zero; // Handled
                 }
             }

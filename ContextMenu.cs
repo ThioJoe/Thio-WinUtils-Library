@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using ThioWinUtils;
-using static ThioWinUtils.ContextMenu;
+using static ThioWinUtils.TrayContextMenu;
 
 #nullable enable
 
@@ -13,7 +13,7 @@ namespace ThioWinUtils
     /// Provides context menu functionality for system tray applications.
     /// Creates and manages popup menus with customizable menu items.
     /// </summary>
-    public class ContextMenu
+    public class TrayContextMenu
     {
         // Primary constructor properties
         private readonly MenuItemSet _menuItemSet = new MenuItemSet();
@@ -69,11 +69,11 @@ namespace ThioWinUtils
         /// </summary>
         /// <param name="updateURL">URL for checking updates. If provided, adds 'Check for Updates' menu item.</param>
         /// <param name="appVersion">Application version to display in the menu (as disabled item).</param>
-        /// <param name="processRestartMenuOption">Whether to include the 'Restart Process' menu option.</param>
-        /// <param name="exitAppMenuOption">Whether to include the 'Exit' menu option.</param>
+        /// <param name="processRestartMenuOption">Whether to include the 'Restart Process' menu option. Not necessary if processRestartAction is supplied, otherwise it will enable default restart action.</param>
+        /// <param name="exitAppMenuOption">Whether to include the 'Exit' menu option. Not necessary if exitAction is supplied, otherwise it will enable default exit action.</param>
         /// <param name="processRestartAction">Custom action to execute when restart is selected. If null, default restart behavior is used.</param>
         /// <param name="exitAction">Custom action to execute when exit is selected. If null, default exit behavior is used.</param>
-        public ContextMenu(
+        public TrayContextMenu(
             string? updateURL = null,
             string? appVersion = null,
             bool processRestartMenuOption = false,
@@ -90,11 +90,13 @@ namespace ThioWinUtils
             if (processRestartAction != null)
             {
                 _restartProcessAction = processRestartAction;
+                processRestartMenuOption = true;
             }
 
             if (exitAction != null)
             {
                 _exitAction = exitAction;
+                exitAppMenuOption = true;
             }
 
             _menuItemSet = CreateMenu(
