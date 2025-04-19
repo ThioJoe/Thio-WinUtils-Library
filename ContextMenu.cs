@@ -9,6 +9,10 @@ using static ThioWinUtils.ContextMenu;
 
 namespace ThioWinUtils
 {
+    /// <summary>
+    /// Provides context menu functionality for system tray applications.
+    /// Creates and manages popup menus with customizable menu items.
+    /// </summary>
     public class ContextMenu
     {
         // Primary constructor properties
@@ -30,6 +34,9 @@ namespace ThioWinUtils
         private const uint MF_STRING = 0x00000000;
 
         // Win32 API structures
+        /// <summary>
+        /// Represents a point in screen coordinates used for menu positioning.
+        /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct POINT
         {
@@ -57,10 +64,19 @@ namespace ThioWinUtils
         private static extern bool SetForegroundWindow(IntPtr hWnd);
 
         // ------------------- Constructor -----------------
+        /// <summary>
+        /// Creates a new context menu for system tray applications.
+        /// </summary>
+        /// <param name="updateURL">URL for checking updates. If provided, adds 'Check for Updates' menu item.</param>
+        /// <param name="appVersion">Application version to display in the menu (as disabled item).</param>
+        /// <param name="processRestartMenuOption">Whether to include the 'Restart Process' menu option.</param>
+        /// <param name="exitAppMenuOption">Whether to include the 'Exit' menu option.</param>
+        /// <param name="processRestartAction">Custom action to execute when restart is selected. If null, default restart behavior is used.</param>
+        /// <param name="exitAction">Custom action to execute when exit is selected. If null, default exit behavior is used.</param>
         public ContextMenu(
-            string? updateURL = null, 
-            string? appVersion = null, 
-            bool processRestartMenuOption = false, 
+            string? updateURL = null,
+            string? appVersion = null,
+            bool processRestartMenuOption = false,
             bool exitAppMenuOption = false,
             Action? processRestartAction = null,
             Action? exitAction = null
@@ -82,13 +98,18 @@ namespace ThioWinUtils
             }
 
             _menuItemSet = CreateMenu(
-                checkUpdatesURL: updateURL, 
-                appVersion: appVersion, 
-                restart: processRestartMenuOption, 
+                checkUpdatesURL: updateURL,
+                appVersion: appVersion,
+                restart: processRestartMenuOption,
                 exit: exitAppMenuOption);
         }
 
-
+        /// <summary>
+        /// Displays the context menu and returns the ID of the selected menu item.
+        /// </summary>
+        /// <param name="hwnd">Window handle to which the context menu is attached.</param>
+        /// <param name="menuItemSet">Set of menu items to display.</param>
+        /// <returns>Index of the selected menu item, or 0 if no selection was made.</returns>
         private static uint ShowContextMenuAndGetResponse(IntPtr hwnd, MenuItemSet menuItemSet)
         {
             MenuItem[] menuItems = menuItemSet.GetMenuItems();
@@ -131,24 +152,62 @@ namespace ThioWinUtils
             return clickedItem;
         }
 
+        /// <summary>
+        /// Represents a single menu item in the context menu.
+        /// </summary>
+        /// <param name="text">Text displayed for the menu item.</param>
+        /// <param name="index">Unique index for the menu item.</param>
+        /// <param name="isDisabled">Whether the menu item is disabled.</param>
         internal class MenuItem(string text, int index, bool isDisabled)
         {
+            /// <summary>
+            /// The text displayed for this menu item.
+            /// </summary>
             public string Text { get; set; } = text;
+
+            /// <summary>
+            /// Whether this menu item is a separator.
+            /// </summary>
             public bool IsSeparator { get; set; } = false;
+
+            /// <summary>
+            /// Whether this menu item is disabled (grayed out).
+            /// </summary>
             public bool IsDisabled { get; set; } = isDisabled;
+
+            /// <summary>
+            /// Unique index for this menu item.
+            /// </summary>
             public int Index { get; set; } = index;
 
+            /// <summary>
+            /// Creates a separator menu item.
+            /// </summary>
+            /// <param name="index">Index for the separator item.</param>
+            /// <returns>A separator menu item.</returns>
             public static MenuItem Separator(int index)
             {
                 return new MenuItem(string.Empty, index, false) { IsSeparator = true };
             }
         }
 
+        /// <summary>
+        /// Collection of menu items that form a context menu.
+        /// </summary>
         internal class MenuItemSet
         {
             internal readonly List<MenuItem> _menuItems = [];
+
+            /// <summary>
+            /// Whether the set contains any menu items.
+            /// </summary>
             internal bool AnyItems => _menuItems.Count > 0;
 
+            /// <summary>
+            /// Adds a new menu item to the set.
+            /// </summary>
+            /// <param name="text">Text to display for the menu item.</param>
+            /// <param name="isDisabled">Whether the menu item should be disabled.</param>
             internal void AddMenuItem(string text, bool isDisabled = false)
             {
                 _menuItems.Add(
@@ -160,27 +219,47 @@ namespace ThioWinUtils
                 );
             }
 
+            /// <summary>
+            /// Adds a separator line to the menu.
+            /// </summary>
             internal void AddSeparator()
             {
                 _menuItems.Add(MenuItem.Separator(_menuItems.Count + 1)); // 1-based index because 0 is reserved for no selection
             }
 
+            /// <summary>
+            /// Gets all menu items as an array.
+            /// </summary>
+            /// <returns>Array of menu items.</returns>
             internal MenuItem[] GetMenuItems()
             {
                 return _menuItems.ToArray();
             }
 
+            /// <summary>
+            /// Finds the index of a menu item by its display text.
+            /// </summary>
+            /// <param name="text">Text to search for.</param>
+            /// <returns>Index of the menu item, or -1 if not found.</returns>
             internal int GetMenuItemIndex_ByText(string text)
             {
                 return _menuItems.FindIndex(x => x.Text == text);
             }
 
+            /// <summary>
+            /// Gets the text of a menu item by its index.
+            /// </summary>
+            /// <param name="index">Index to look up.</param>
+            /// <returns>Text of the menu item, or null if not found.</returns>
             internal string? GetMenuItemText_ByIndex(int index)
             {
                 return _menuItems.Find(x => x.Index == index)?.Text;
             }
         }
 
+        /// <summary>
+        /// Default text values for standard menu items.
+        /// </summary>
         internal static class DefaultMenuItemNames
         {
             public const string CheckUpdates = "Check for Updates";
@@ -189,8 +268,16 @@ namespace ThioWinUtils
             public const string Exit = "Exit";
         }
 
+        /// <summary>
+        /// Creates a menu with standard options based on the provided parameters.
+        /// </summary>
+        /// <param name="checkUpdatesURL">URL for checking updates. If provided, adds 'Check for Updates' menu item.</param>
+        /// <param name="appVersion">Application version to display in the menu (as disabled item).</param>
+        /// <param name="restart">Whether to include the 'Restart Process' menu option.</param>
+        /// <param name="exit">Whether to include the 'Exit' menu option.</param>
+        /// <returns>A configured MenuItemSet.</returns>
         internal static MenuItemSet CreateMenu(
-            string? checkUpdatesURL = null, 
+            string? checkUpdatesURL = null,
             string? appVersion = null,
             bool restart = false,
             bool exit = false
@@ -201,7 +288,7 @@ namespace ThioWinUtils
             if (checkUpdatesURL != null && !string.IsNullOrWhiteSpace(checkUpdatesURL))
                 menuItemSet.AddMenuItem(DefaultMenuItemNames.CheckUpdates);
 
-            if(appVersion != null && !string.IsNullOrWhiteSpace(appVersion))
+            if (appVersion != null && !string.IsNullOrWhiteSpace(appVersion))
                 menuItemSet.AddMenuItem(appVersion, isDisabled: true);
 
             if (!string.IsNullOrWhiteSpace(appVersion) || !string.IsNullOrWhiteSpace(checkUpdatesURL))
@@ -216,6 +303,11 @@ namespace ThioWinUtils
             return menuItemSet;
         }
 
+        /// <summary>
+        /// Shows the context menu and handles the selected action.
+        /// </summary>
+        /// <param name="systemTrayAttachedHwnd">Window handle to which the system tray is attached.</param>
+        /// <param name="systemTray">SystemTray instance used for restoration functionality.</param>
         public void Show(IntPtr systemTrayAttachedHwnd, SystemTray systemTray)
         {
             if (!_menuItemSet.AnyItems)
@@ -258,6 +350,9 @@ namespace ThioWinUtils
             }
         }
 
+        /// <summary>
+        /// Opens the update website in the default browser.
+        /// </summary>
         private void OpenUpdatesWebsite()
         {
             if (_checkUpdatesURL == null || string.IsNullOrWhiteSpace(_checkUpdatesURL))
@@ -280,6 +375,9 @@ namespace ThioWinUtils
             }
         }
 
+        /// <summary>
+        /// Restarts the application using the provided restart action or by default behavior.
+        /// </summary>
         private void RestartApplication()
         {
             if (_restartProcessAction is Action restartAction)
@@ -300,9 +398,12 @@ namespace ThioWinUtils
                 }
                 Process.Start(executablePath);
                 Environment.Exit(0);
-            }               
+            }
         }
 
+        /// <summary>
+        /// Exits the application using the provided exit action or by default behavior.
+        /// </summary>
         private void ExitApp()
         {
             if (_exitAction is Action exitAction)
@@ -321,6 +422,9 @@ namespace ThioWinUtils
     } // End of ContextMenu class
 
 
+    /// <summary>
+    /// Provides native Windows message box functionality.
+    /// </summary>
     public class NativeMessageBox
     {
         // Import the MessageBox function from user32.dll
@@ -330,6 +434,11 @@ namespace ThioWinUtils
         // MB_OK constant from WinUser.h
         private const uint MB_OK = 0x00000000;
 
+        /// <summary>
+        /// Shows an information message box with an OK button.
+        /// </summary>
+        /// <param name="message">The message to display.</param>
+        /// <param name="title">The title of the message box.</param>
         public static void ShowInfoMessage(string message, string title)
         {
             // Show message box with MB_OK style (just OK button)
@@ -337,6 +446,11 @@ namespace ThioWinUtils
             _ = MessageBox(IntPtr.Zero, message, title, MB_OK);
         }
 
+        /// <summary>
+        /// Shows an error message box with an OK button and error icon.
+        /// </summary>
+        /// <param name="message">The error message to display.</param>
+        /// <param name="title">The title of the message box.</param>
         public static void ShowErrorMessage(string message, string title)
         {
             // Show message box with MB_ICONERROR style (error icon)
