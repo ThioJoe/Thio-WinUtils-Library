@@ -16,14 +16,28 @@ namespace ThioWinUtils // Change this to your desired namespace
     /// Manages a system tray icon using P/Invoke.
     /// Allows for use with or without an existing application window.
     /// </summary>
-    public class SystemTray : IDisposable
+    /// <remarks>
+    /// Creates a new SystemTray instance.
+    /// </remarks>
+    /// <param name="icon">The icon to display in the tray.</param>
+    /// <param name="tooltipText">The tooltip text for the icon.</param>
+    /// <param name="createContextMenuAction">Action to execute on right-click to show a context menu. Can be null.</param>
+    /// /// <param name="restoreAction">Action to execute on left-click (e.g., show window). If null, will default to showing the hwndInput window if provided.</param>
+    /// <param name="hwndInput">Optional handle of an existing window to receive messages. If IntPtr.Zero, a hidden window is created.</param>
+    public class SystemTray(
+         Icon icon,
+         string tooltipText,
+         Action<IntPtr, SystemTray>? createContextMenuAction,
+         Action? restoreAction = null,
+         IntPtr hwndInput = default
+            ) : IDisposable
     {
         // Configuration passed via constructor
-        private readonly Icon _icon;
-        private readonly string _tooltipText;
-        private readonly Action? _restoreAction;
-        private readonly Action<IntPtr, SystemTray>? _createContextMenuAction;
-        private readonly IntPtr _hwndInput;
+        private readonly Icon _icon = icon ?? throw new ArgumentNullException(nameof(icon));
+        private readonly string _tooltipText = tooltipText ?? string.Empty;
+        private readonly Action? _restoreAction = restoreAction;
+        private readonly Action<IntPtr, SystemTray>? _createContextMenuAction = createContextMenuAction;
+        private readonly IntPtr _hwndInput = hwndInput;
 
         // Internal state
         private NOTIFYICONDATAW _notifyIconData;
@@ -230,29 +244,6 @@ namespace ThioWinUtils // Change this to your desired namespace
         public static extern IntPtr GetModuleHandle(string? lpModuleName);
 
         #endregion PInvoke Declarations
-
-        /// <summary>
-        /// Creates a new SystemTray instance.
-        /// </summary>
-        /// <param name="icon">The icon to display in the tray.</param>
-        /// <param name="tooltipText">The tooltip text for the icon.</param>
-        /// <param name="createContextMenuAction">Action to execute on right-click to show a context menu. Can be null.</param>
-        /// /// <param name="restoreAction">Action to execute on left-click (e.g., show window). If null, will default to showing the hwndInput window if provided.</param>
-        /// <param name="hwndInput">Optional handle of an existing window to receive messages. If IntPtr.Zero, a hidden window is created.</param>
-        public SystemTray(
-             Icon icon,
-             string tooltipText,
-             Action<IntPtr, SystemTray>? createContextMenuAction,
-             Action? restoreAction = null,
-             IntPtr hwndInput = default
-            )
-        {
-            _icon = icon ?? throw new ArgumentNullException(nameof(icon));
-            _tooltipText = tooltipText ?? string.Empty;
-            _restoreAction = restoreAction;
-            _createContextMenuAction = createContextMenuAction;
-            _hwndInput = hwndInput; // Can be IntPtr.Zero
-        }
 
         /// <summary>
         /// Initializes the system tray icon, creating or subclassing the window as needed.
