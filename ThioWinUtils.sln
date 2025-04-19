@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.35906.104 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThioWinUtils", "ThioWinUtils.csproj", "{F74E7A13-1FD4-4DFD-993D-B2CB39BF60CB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F74E7A13-1FD4-4DFD-993D-B2CB39BF60CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F74E7A13-1FD4-4DFD-993D-B2CB39BF60CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F74E7A13-1FD4-4DFD-993D-B2CB39BF60CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F74E7A13-1FD4-4DFD-993D-B2CB39BF60CB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {04D247B6-78BC-41C8-BDB7-2634011F6BBA}
+	EndGlobalSection
+EndGlobal
