@@ -28,7 +28,7 @@ namespace TestFormsApp
 
             SystemTray tray = new(
                 trayContextMenu: menu,
-                trayIcon: SystemIcons.Exclamation,
+                iconHandle: SystemIcons.Exclamation.Handle,
                 tooltipText: "Test App",
                 restoreAction: null,
                 hwndInput: IntPtr.Zero

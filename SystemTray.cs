@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Drawing; // Required for Icon
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading; // Required for WNDPROC delegate registration context
@@ -29,22 +28,39 @@ namespace ThioWinUtils // Change this to your desired namespace
         // Constructor
         public SystemTray(
             TrayContextMenu? trayContextMenu,
-            Icon? trayIcon = null,
+            IntPtr? iconHandle = null,
             string tooltipText = "",
             Action? restoreAction = null,
             IntPtr hwndInput = default
             )
         {
-            Icon icon;
-            if (trayIcon is Icon validIcon)
-                icon = validIcon;
+            // Get or create icon handle
+            if (iconHandle.HasValue && iconHandle.Value != IntPtr.Zero)
+            {
+                _iconHandle = iconHandle.Value;
+                _ownsIconHandle = false; // We don't own externally provided handles
+            }
             else
-                icon = SystemIcons.Application;
+            {
+                // Use system application icon or create a simple blue icon
+                _iconHandle = GetDefaultApplicationIconHandle();
+                if (_iconHandle == null || _iconHandle == IntPtr.Zero)
+                {
+                    // Fallback to creating our own if system icon failed
+                    _iconHandle = CreateSimpleIcon();
+                    _ownsIconHandle = true; // We created this handle, so we own it
+                }
+                else
+                {
+                    _ownsIconHandle = false; // System icons are shared resources, don't destroy
+                }
+            }
 
-            // Validate icon and tooltip text
-            if (icon == null) throw new ArgumentNullException(nameof(icon));
+            // Validate icon handle
+            if (_iconHandle == null || _iconHandle == IntPtr.Zero)
+                throw new ArgumentNullException(nameof(iconHandle), "Failed to create or obtain valid icon handle");
+
             // Assign parameters
-            _icon = icon;
             _tooltipText = tooltipText;
             _restoreAction = restoreAction;
             _createContextMenuAction = trayContextMenu;
@@ -54,7 +70,6 @@ namespace ThioWinUtils // Change this to your desired namespace
             Initialize();
         }
 
-        private readonly Icon _icon;
         private readonly string _tooltipText;
         private readonly Action? _restoreAction;
         private readonly TrayContextMenu? _createContextMenuAction;
@@ -70,11 +85,47 @@ namespace ThioWinUtils // Change this to your desired namespace
         private uint _taskbarCreatedMessageId;
         private const string HiddenWindowClassName = "SystemTrayHiddenWindow";
         private GCHandle _wndProcGCHandle; // Keep the delegate alive
+        private readonly IntPtr _iconHandle;
+        private bool _ownsIconHandle;
 
         // Delegates
         private delegate IntPtr WndProcDelegate(IntPtr hwnd, uint msg, UIntPtr wParam, IntPtr lParam);
 
         #region PInvoke Declarations
+
+        // ----- For creating the icon -----
+        [StructLayout(LayoutKind.Sequential)]
+        private struct ICONINFO
+        {
+            public bool fIcon;      // Specifies whether this structure defines an icon or a cursor
+            public int xHotspot;    // The x-coordinate of the hotspot
+            public int yHotspot;    // The y-coordinate of the hotspot
+            public IntPtr hbmMask;  // The bitmask bitmap
+            public IntPtr hbmColor; // The color bitmap
+        }
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern IntPtr CreateIconIndirect([In] ref ICONINFO piconinfo);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool DestroyIcon(IntPtr hIcon);
+
+        [DllImport("gdi32.dll", SetLastError = true)]
+        private static extern IntPtr CreateBitmap(int nWidth, int nHeight, uint cPlanes, uint cBitsPerPel, IntPtr lpvBits);
+
+        [DllImport("gdi32.dll", SetLastError = true)]
+        private static extern bool DeleteObject(IntPtr hObject);
+
+        private static IntPtr GetDefaultApplicationIconHandle()
+        {
+            int iconId = 32512;
+            return LoadIcon(IntPtr.Zero, (IntPtr)iconId);
+        }
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern IntPtr LoadIcon(IntPtr hInstance, IntPtr lpIconName);
+
+        // ---------------------------------------------
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
         private struct NOTIFYICONDATAW
@@ -418,7 +469,7 @@ namespace ThioWinUtils // Change this to your desired namespace
                 uFlags = NIF.ICON | NIF.MESSAGE | NIF.TIP,
                 uCallbackMessage = WM_TRAYICON, // Custom message ID
                 szTip = _tooltipText,
-                hIcon = _icon.Handle // Use handle from provided Icon object
+                hIcon = _iconHandle // Use handle from provided Icon object
             };
 
             // Add the icon
@@ -441,6 +492,57 @@ namespace ThioWinUtils // Change this to your desired namespace
                 Debug.WriteLine($"Error: Failed to add tray icon initially. Error: {error}");
                 // Consider adding retry logic here if needed
             }
+        }
+
+        /// <summary>
+        /// Creates a simple icon using Windows API without System.Drawing dependency
+        /// </summary>
+        /// <param name="width">Width of the icon</param>
+        /// <param name="height">Height of the icon</param>
+        /// <param name="color">Icon color in 0xAARRGGBB format</param>
+        /// <returns>Handle to the created icon</returns>
+        private static IntPtr CreateSimpleIcon(int width = 16, int height = 16, uint color = 0xFF0000FF)
+        {
+            // Create mask bitmap (monochrome)
+            IntPtr hbmMask = CreateBitmap(width, height, 1, 1, IntPtr.Zero);
+            if (hbmMask == IntPtr.Zero)
+            {
+                Debug.WriteLine($"Failed to create mask bitmap: {Marshal.GetLastWin32Error()}");
+                return IntPtr.Zero;
+            }
+
+            // Create color bitmap
+            IntPtr hbmColor = CreateBitmap(width, height, 1, 32, IntPtr.Zero);
+            if (hbmColor == IntPtr.Zero)
+            {
+                DeleteObject(hbmMask);
+                Debug.WriteLine($"Failed to create color bitmap: {Marshal.GetLastWin32Error()}");
+                return IntPtr.Zero;
+            }
+
+            // Set up icon info
+            ICONINFO iconInfo = new ICONINFO
+            {
+                fIcon = true,  // Create an icon (not a cursor)
+                xHotspot = 0,
+                yHotspot = 0,
+                hbmMask = hbmMask,
+                hbmColor = hbmColor
+            };
+
+            // Create the icon
+            IntPtr hIcon = CreateIconIndirect(ref iconInfo);
+
+            // Clean up the bitmaps (they are copied into the icon)
+            DeleteObject(hbmMask);
+            DeleteObject(hbmColor);
+
+            if (hIcon == IntPtr.Zero)
+            {
+                Debug.WriteLine($"Failed to create icon: {Marshal.GetLastWin32Error()}");
+            }
+
+            return hIcon;
         }
 
         private void RecreateNotifyIcon()
@@ -549,7 +651,12 @@ namespace ThioWinUtils // Change this to your desired namespace
         {
             Dispose(true);
             GC.SuppressFinalize(this); // Prevent finalizer from running
-            //CleanUpResources() // necessary?
+            
+            // Clean up icon handle if we own it
+            if (_ownsIconHandle && _iconHandle != IntPtr.Zero)
+            {
+                DestroyIcon(_iconHandle);
+            }
         }
 
         /// <summary>
