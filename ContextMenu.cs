@@ -22,6 +22,8 @@ namespace ThioWinUtils
         private readonly string _helpMessage = string.Empty;
         private readonly Action? _restartProcessAction = null;
         private readonly Action? _exitAction = null;
+        private readonly Dictionary<string, Action> _customMenuItems = new();
+        private bool _hasCustomItems = false;
 
         // Win32 System Tray constants related to clicking the tray
         private const uint TPM_RETURNCMD = 0x0100;
@@ -241,6 +243,44 @@ namespace ThioWinUtils
             }
 
             /// <summary>
+            /// Inserts a menu item at a specific position.
+            /// </summary>
+            /// <param name="position">Zero-based position to insert at.</param>
+            /// <param name="text">Text to display for the menu item.</param>
+            /// <param name="isDisabled">Whether the menu item should be disabled.</param>
+            internal void InsertMenuItem(int position, string text, bool isDisabled = false)
+            {
+                var newItem = new MenuItem(
+                    text,
+                    0,  // Temporary index, will be recalculated
+                    isDisabled
+                );
+                _menuItems.Insert(position, newItem);
+
+                // Recalculate all indices
+                for (int i = 0; i < _menuItems.Count; i++)
+                {
+                    _menuItems[i].Index = i + 1;
+                }
+            }
+
+            /// <summary>
+            /// Inserts a separator at a specific position.
+            /// </summary>
+            /// <param name="position">Zero-based position to insert at.</param>
+            internal void InsertSeparator(int position)
+            {
+                var separator = MenuItem.Separator(0);  // Temporary index, will be recalculated
+                _menuItems.Insert(position, separator);
+
+                // Recalculate all indices
+                for (int i = 0; i < _menuItems.Count; i++)
+                {
+                    _menuItems[i].Index = i + 1;
+                }
+            }
+
+            /// <summary>
             /// Adds a separator line to the menu.
             /// </summary>
             internal void AddSeparator()
@@ -337,6 +377,48 @@ namespace ThioWinUtils
         }
 
         /// <summary>
+        /// Adds a custom menu item with an associated action.
+        /// </summary>
+        /// <param name="text">The text to display for the menu item.</param>
+        /// <param name="action">The action to execute when the menu item is clicked.</param>
+        /// <exception cref="ArgumentException">Thrown when text is null or whitespace.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when action is null.</exception>
+        public void AddCustomMenuItem(string text, Action action)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                throw new ArgumentException("Menu item text cannot be null or empty", nameof(text));
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
+
+            _customMenuItems[text] = action;
+
+            // Find the insertion point (before Restart or Exit if they exist)
+            int insertPosition = _menuItemSet._menuItems.Count;
+
+            // Look for Restart or Exit menu items
+            int restartIndex = _menuItemSet.GetMenuItemIndex_ByText(DefaultMenuItemNames.Restart);
+            int exitIndex = _menuItemSet.GetMenuItemIndex_ByText(DefaultMenuItemNames.Exit);
+
+            // Find the earliest position of Restart or Exit
+            if (restartIndex >= 0)
+                insertPosition = Math.Min(insertPosition, restartIndex);
+            if (exitIndex >= 0)
+                insertPosition = Math.Min(insertPosition, exitIndex);
+
+            // If this is the first custom item and we're inserting before Restart/Exit, add a separator first
+            if (!_hasCustomItems && insertPosition < _menuItemSet._menuItems.Count)
+            {
+                _menuItemSet.InsertMenuItem(insertPosition, text);
+                _menuItemSet.InsertSeparator(insertPosition + 1);
+                _hasCustomItems = true;
+            }
+            else
+            {
+                _menuItemSet.InsertMenuItem(insertPosition, text);
+            }
+        }
+
+        /// <summary>
         /// Shows the context menu and handles the selected action.
         /// </summary>
         /// <param name="systemTrayAttachedHwnd">Window handle to which the system tray is attached.</param>
@@ -383,7 +465,14 @@ namespace ThioWinUtils
                         Trace.WriteLine("Error: Selected item not found.");
                         break;
                     default:
-                        Trace.WriteLine("Error: Selected item not handled.");
+                        if (selectedText != null && _customMenuItems.TryGetValue(selectedText, out var customAction))
+                        {
+                            customAction.Invoke();
+                        }
+                        else
+                        {
+                            Trace.WriteLine("Error: Selected item not handled.");
+                        }
                         break;
                 }
             }
