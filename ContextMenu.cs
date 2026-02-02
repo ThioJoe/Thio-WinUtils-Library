@@ -379,18 +379,35 @@ namespace ThioWinUtils
         /// <summary>
         /// Adds a custom menu item with an associated action.
         /// </summary>
-        /// <param name="text">The text to display for the menu item.</param>
-        /// <param name="action">The action to execute when the menu item is clicked.</param>
+        /// <param name="text">The text to display for the menu item. If an empty string, will add a separator.</param>
+        /// <param name="action">The action to execute when the menu item is clicked. Can be null ONLY if adding a separator, where <paramref name="text"/> parameter is an empty string.</param>
         /// <exception cref="ArgumentException">Thrown when text is null or whitespace.</exception>
         /// <exception cref="ArgumentNullException">Thrown when action is null.</exception>
-        public void AddCustomMenuItem(string text, Action action)
+        public void AddCustomMenuItem(string text, Action? action)
         {
-            if (string.IsNullOrWhiteSpace(text))
-                throw new ArgumentException("Menu item text cannot be null or empty", nameof(text));
-            if (action == null)
-                throw new ArgumentNullException(nameof(action));
+            // Null text parameter is never allowed
+            if (text == null)
+            {
+                throw new ArgumentException("AddCustomMenuItem: Menu item text cannot be null. However an empty string is allowed to add a separator.", nameof(text));
+            }
+            // If adding a separator by passing an empty string, the action MUST be null
+            else if (text == String.Empty && action != null)
+            {
+                throw new ArgumentException("AddCustomMenuItem: Cannot assign an action to a separator menu item. If 'text' parameter is empty, 'action' must be null.", nameof(action));
+            }
 
-            _customMenuItems[text] = action;
+            if (action == null && text != String.Empty)
+            {
+                throw new ArgumentNullException("AddCustomMenuItem: The 'action' parameter cannot be null unless the 'text' parameter is an empty string, in which case a separator will be added.", nameof(action));
+            }
+
+            bool isSeparator = (text == String.Empty);
+
+            // Only add to custom menu items dictionary if it's not a separator
+            if (!isSeparator)
+            {
+                _customMenuItems[text] = action!;
+            }
 
             // Find the insertion point (before Restart or Exit if they exist)
             int insertPosition = _menuItemSet._menuItems.Count;
@@ -408,19 +425,32 @@ namespace ThioWinUtils
             // If this is the first custom item and we're inserting before Restart/Exit, add the item and then a separator
             if (!_hasCustomItems && insertPosition < _menuItemSet._menuItems.Count)
             {
-                _menuItemSet.InsertMenuItem(insertPosition, text);
-                _menuItemSet.InsertSeparator(insertPosition + 1);
+                if (isSeparator)
+                {
+                    _menuItemSet.InsertSeparator(insertPosition);
+                }
+                else
+                {
+                    _menuItemSet.InsertMenuItem(insertPosition, text);
+                    _menuItemSet.InsertSeparator(insertPosition + 1);
+                }
                 _hasCustomItems = true;
             }
             else if (_hasCustomItems && insertPosition < _menuItemSet._menuItems.Count)
             {
                 // If we already have custom items, insert before the separator (which is at insertPosition - 1)
-                _menuItemSet.InsertMenuItem(insertPosition - 1, text);
+                if (isSeparator)
+                    _menuItemSet.InsertSeparator(insertPosition - 1);
+                else
+                    _menuItemSet.InsertMenuItem(insertPosition - 1, text);
             }
             else
             {
                 // No Restart/Exit options, just add to the end
-                _menuItemSet.AddMenuItem(text);
+                if (isSeparator)
+                    _menuItemSet.AddSeparator();
+                else
+                    _menuItemSet.AddMenuItem(text);
             }
         }
 
