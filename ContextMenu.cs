@@ -18,6 +18,8 @@ namespace ThioWinUtils
         // Primary constructor properties
         private readonly MenuItemSet _menuItemSet = new MenuItemSet();
         private readonly string _checkUpdatesURL = string.Empty;
+        private readonly string _aboutMessage = string.Empty;
+        private readonly string _helpMessage = string.Empty;
         private readonly Action? _restartProcessAction = null;
         private readonly Action? _exitAction = null;
 
@@ -69,6 +71,8 @@ namespace ThioWinUtils
         /// </summary>
         /// <param name="updateURL">URL for checking updates. If provided, adds 'Check for Updates' menu item.</param>
         /// <param name="appVersion">Application version to display in the menu (as disabled item).</param>
+        /// <param name="aboutMessage">If provided, adds "About" menu option which displays the string in a message box.</param>
+        /// <param name="helpMessage">If provided, adds "Help" menu option which displays the string in a message box.</param>
         /// <param name="processRestartMenuOption">Whether to include the 'Restart Process' menu option. Not necessary if processRestartAction is supplied, otherwise it will enable default restart action.</param>
         /// <param name="exitAppMenuOption">Whether to include the 'Exit' menu option. Not necessary if exitAction is supplied, otherwise it will enable default exit action.</param>
         /// <param name="processRestartAction">Custom action to execute when restart is selected. If null, default restart behavior is used.</param>
@@ -76,6 +80,8 @@ namespace ThioWinUtils
         public TrayContextMenu(
             string? updateURL = null,
             string? appVersion = null,
+            string? aboutMessage = null,
+            string? helpMessage = null,
             bool processRestartMenuOption = false,
             bool exitAppMenuOption = false,
             Action? processRestartAction = null,
@@ -99,11 +105,24 @@ namespace ThioWinUtils
                 exitAppMenuOption = true;
             }
 
+            if (aboutMessage != null && !string.IsNullOrWhiteSpace(aboutMessage))
+            {
+                _aboutMessage = aboutMessage;
+            }
+
+            if (helpMessage != null && !string.IsNullOrWhiteSpace(helpMessage))
+            {
+                _helpMessage = helpMessage;
+            }
+
             _menuItemSet = CreateMenu(
                 checkUpdatesURL: updateURL,
                 appVersion: appVersion,
+                aboutMessage: aboutMessage,
+                helpMessage: helpMessage,
                 restart: processRestartMenuOption,
-                exit: exitAppMenuOption);
+                exit: exitAppMenuOption
+                );
         }
 
         /// <summary>
@@ -268,6 +287,8 @@ namespace ThioWinUtils
             public const string Restore = "Restore";
             public const string Restart = "Restart Process";
             public const string Exit = "Exit";
+            public const string About = "About";
+            public const string Help = "Help";
         }
 
         /// <summary>
@@ -275,12 +296,16 @@ namespace ThioWinUtils
         /// </summary>
         /// <param name="checkUpdatesURL">URL for checking updates. If provided, adds 'Check for Updates' menu item.</param>
         /// <param name="appVersion">Application version to display in the menu (as disabled item).</param>
+        /// <param name="aboutMessage">If provided, adds "About" menu option which displays the string in a message box.</param>
+        /// <param name="helpMessage">If provided, adds "Help" menu option which displays the string in a message box.</param>
         /// <param name="restart">Whether to include the 'Restart Process' menu option.</param>
         /// <param name="exit">Whether to include the 'Exit' menu option.</param>
         /// <returns>A configured MenuItemSet.</returns>
         internal static MenuItemSet CreateMenu(
             string? checkUpdatesURL = null,
             string? appVersion = null,
+            string? aboutMessage = null,
+            string? helpMessage = null,
             bool restart = false,
             bool exit = false
             )
@@ -292,6 +317,12 @@ namespace ThioWinUtils
 
             if (appVersion != null && !string.IsNullOrWhiteSpace(appVersion))
                 menuItemSet.AddMenuItem(appVersion, isDisabled: true);
+
+            if (!string.IsNullOrWhiteSpace(aboutMessage))
+                menuItemSet.AddMenuItem(DefaultMenuItemNames.About);
+
+            if (!string.IsNullOrWhiteSpace(helpMessage))
+                menuItemSet.AddMenuItem(DefaultMenuItemNames.Help);
 
             if (!string.IsNullOrWhiteSpace(appVersion) || !string.IsNullOrWhiteSpace(checkUpdatesURL))
                 menuItemSet.AddSeparator();
@@ -340,6 +371,12 @@ namespace ThioWinUtils
                         break;
                     case DefaultMenuItemNames.Exit:
                         ExitApp();
+                        break;
+                    case DefaultMenuItemNames.About:
+                        NativeMessageBox.ShowInfoMessage(_aboutMessage, "Help");
+                        break;
+                    case DefaultMenuItemNames.Help:
+                        NativeMessageBox.ShowInfoMessage(_helpMessage, "About");
                         break;
 
                     case null:
@@ -427,7 +464,7 @@ namespace ThioWinUtils
     /// <summary>
     /// Provides native Windows message box functionality.
     /// </summary>
-    public class NativeMessageBox
+    internal class NativeMessageBox
     {
         // Import the MessageBox function from user32.dll
         [DllImport("user32.dll", CharSet = CharSet.Unicode), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
