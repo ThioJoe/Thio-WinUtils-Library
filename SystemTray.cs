@@ -465,7 +465,7 @@ namespace ThioWinUtils // Change this to your desired namespace
                 cbSize = (uint)Marshal.SizeOf<NOTIFYICONDATAW>(),
                 hWnd = _hwnd, // Use the determined window handle
                 uID = 1, // Unique ID for this icon
-                uFlags = NIF.ICON | NIF.MESSAGE | NIF.TIP,
+                uFlags = NIF.ICON | NIF.MESSAGE | NIF.TIP | NIF.SHOWTIP,
                 uCallbackMessage = WM_TRAYICON, // Custom message ID
                 szTip = _tooltipText,
                 hIcon = _iconHandle // Use handle from provided Icon object
