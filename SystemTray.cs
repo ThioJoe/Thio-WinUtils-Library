@@ -9,7 +9,6 @@ using System.Threading; // Required for WNDPROC delegate registration context
 #pragma warning disable IDE1006 // Naming Styles
 
 namespace ThioWinUtils // Change this to your desired namespace
-
 {
     /// <summary>
     /// Manages a system tray icon using P/Invoke.
@@ -18,10 +17,10 @@ namespace ThioWinUtils // Change this to your desired namespace
     /// <remarks>
     /// Creates a new SystemTray instance.
     /// </remarks>
-    /// <param name="icon">The icon to display in the tray.</param>
+    /// <param name="trayContextMenu">Optional context menu to display on right-click. Can be null. Requires ThioWinUtils.TrayContextMenu</param>
+    /// <param name="iconHandle">Optional handle to an icon to display in the tray. If null or IntPtr.Zero, uses the application icon or creates a default icon.</param>
     /// <param name="tooltipText">The tooltip text for the icon.</param>
-    /// <param name="createContextMenuAction">Action to execute on right-click to show a context menu. Can be null.</param>
-    /// /// <param name="restoreAction">Action to execute on left-click (e.g., show window). If null, will default to showing the hwndInput window if provided.</param>
+    /// <param name="restoreAction">Action to execute on left-click (e.g., show window). If null, will default to showing the hwndInput window if provided.</param>
     /// <param name="hwndInput">Optional handle of an existing window to receive messages. If IntPtr.Zero, a hidden window is created.</param>
     public class SystemTray : IDisposable
     {
@@ -104,16 +103,16 @@ namespace ThioWinUtils // Change this to your desired namespace
             public IntPtr hbmColor; // The color bitmap
         }
 
-        [DllImport("user32.dll", SetLastError = true)]
+        [DllImport("user32.dll", SetLastError = true), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern IntPtr CreateIconIndirect([In] ref ICONINFO piconinfo);
 
-        [DllImport("user32.dll", SetLastError = true)]
+        [DllImport("user32.dll", SetLastError = true), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern bool DestroyIcon(IntPtr hIcon);
 
-        [DllImport("gdi32.dll", SetLastError = true)]
+        [DllImport("gdi32.dll", SetLastError = true), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern IntPtr CreateBitmap(int nWidth, int nHeight, uint cPlanes, uint cBitsPerPel, IntPtr lpvBits);
 
-        [DllImport("gdi32.dll", SetLastError = true)]
+        [DllImport("gdi32.dll", SetLastError = true), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern bool DeleteObject(IntPtr hObject);
 
         private static IntPtr GetDefaultApplicationIconHandle()
@@ -122,7 +121,7 @@ namespace ThioWinUtils // Change this to your desired namespace
             return LoadIcon(IntPtr.Zero, (IntPtr)iconId);
         }
 
-        [DllImport("user32.dll", SetLastError = true)]
+        [DllImport("user32.dll", SetLastError = true), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern IntPtr LoadIcon(IntPtr hInstance, IntPtr lpIconName);
 
         // ---------------------------------------------
@@ -218,27 +217,27 @@ namespace ThioWinUtils // Change this to your desired namespace
         // Custom message for tray icon events
         private const uint WM_TRAYICON = (uint)WM.USER + 1;
 
-        [DllImport("user32.dll", SetLastError = true)]
+        [DllImport("user32.dll", SetLastError = true), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
 
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll"), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool ShowWindow(IntPtr hWnd, nCmdShow nCmdShow);
 
-        [DllImport("shell32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        [DllImport("shell32.dll", CharSet = CharSet.Unicode, SetLastError = true), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern bool Shell_NotifyIcon(NIM dwMessage, ref NOTIFYICONDATAW lpData);
 
-        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern uint RegisterWindowMessage(string lpString);
 
-        [DllImport("user32.dll", SetLastError = true)]
+        [DllImport("user32.dll", SetLastError = true), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern IntPtr DefWindowProc(IntPtr hWnd, uint uMsg, UIntPtr wParam, IntPtr lParam);
 
-        [DllImport("user32.dll", SetLastError = true)]
+        [DllImport("user32.dll", SetLastError = true), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, uint uMsg, UIntPtr wParam, IntPtr lParam);
 
-        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern IntPtr CreateWindowEx(
            uint dwExStyle,
            string lpClassName,
@@ -253,14 +252,14 @@ namespace ThioWinUtils // Change this to your desired namespace
            IntPtr hInstance,
            IntPtr lpParam);
 
-        [DllImport("user32.dll", SetLastError = true)]
+        [DllImport("user32.dll", SetLastError = true), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool DestroyWindow(IntPtr hWnd);
 
-        [DllImport("user32.dll", SetLastError = true)]
+        [DllImport("user32.dll", SetLastError = true), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
 
-        [DllImport("user32.dll", SetLastError = true)]
+        [DllImport("user32.dll", SetLastError = true), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex);
 
         // Wrapper to handle 32/64 bit pointer size differences for SetWindowLong/GetWindowLong
@@ -282,10 +281,10 @@ namespace ThioWinUtils // Change this to your desired namespace
                 return GetWindowLong(hWnd, nIndex);
         }
 
-        [DllImport("user32.dll", EntryPoint = "SetWindowLong", CharSet = CharSet.Auto)]
+        [DllImport("user32.dll", EntryPoint = "SetWindowLong", CharSet = CharSet.Auto), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
 
-        [DllImport("user32.dll", EntryPoint = "GetWindowLong", CharSet = CharSet.Auto)]
+        [DllImport("user32.dll", EntryPoint = "GetWindowLong", CharSet = CharSet.Auto), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern IntPtr GetWindowLong(IntPtr hWnd, int nIndex);
 
 
@@ -306,13 +305,13 @@ namespace ThioWinUtils // Change this to your desired namespace
             public IntPtr hIconSm;
         }
 
-        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         public static extern ushort RegisterClassEx([In] ref WNDCLASSEX lpwcx);
 
-        [DllImport("user32.dll", SetLastError = true)]
+        [DllImport("user32.dll", SetLastError = true), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         public static extern bool UnregisterClass(string lpClassName, IntPtr hInstance);
 
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true), DefaultDllImportSearchPaths(DllImportSearchPath.System32)   ]
         public static extern IntPtr GetModuleHandle(string? lpModuleName);
 
         #endregion PInvoke Declarations
@@ -651,7 +650,7 @@ namespace ThioWinUtils // Change this to your desired namespace
         {
             Dispose(true);
             GC.SuppressFinalize(this); // Prevent finalizer from running
-            
+
             // Clean up icon handle if we own it
             if (_ownsIconHandle && _iconHandle != IntPtr.Zero)
             {

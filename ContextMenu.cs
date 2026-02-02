@@ -45,22 +45,22 @@ namespace ThioWinUtils
         }
 
         // Win32 API functions
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll"), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern IntPtr CreatePopupMenu();
 
-        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        [DllImport("user32.dll", CharSet = CharSet.Unicode), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern bool InsertMenu(IntPtr hMenu, uint uPosition, uint uFlags, uint uIDNewItem, string lpNewItem);
 
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll"), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern bool DestroyMenu(IntPtr hMenu);
 
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll"), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern bool GetCursorPos(out POINT lpPoint);
 
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll"), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern uint TrackPopupMenu(IntPtr hMenu, uint uFlags, int x, int y, int nReserved, IntPtr hwnd, IntPtr lprc);
 
-        [DllImport("user32.dll")]
+        [DllImport("user32.dll"), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
 
         // ------------------- Constructor -----------------
@@ -430,7 +430,7 @@ namespace ThioWinUtils
     public class NativeMessageBox
     {
         // Import the MessageBox function from user32.dll
-        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        [DllImport("user32.dll", CharSet = CharSet.Unicode), DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern int MessageBox(IntPtr hWnd, string text, string caption, uint type);
 
         // MB_OK constant from WinUser.h
