@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading; // Required for WNDPROC delegate registration context
@@ -10,24 +11,25 @@ using System.Threading; // Required for WNDPROC delegate registration context
 
 namespace ThioWinUtils // Change this to your desired namespace
 {
-    /// <summary>
-    /// Manages a system tray icon using P/Invoke.
-    /// Allows for use with or without an existing application window.
-    /// </summary>
-    /// <remarks>
-    /// Creates a new SystemTray instance.
-    /// </remarks>
-    /// <param name="trayContextMenu">Optional context menu to display on right-click. Can be null. Requires ThioWinUtils.TrayContextMenu</param>
-    /// <param name="iconHandle">Optional handle to an icon to display in the tray. If null or IntPtr.Zero, uses the application icon or creates a default icon.</param>
-    /// <param name="tooltipText">The tooltip text for the icon.</param>
-    /// <param name="restoreAction">Action to execute on left-click (e.g., show window). If null, will default to showing the hwndInput window if provided.</param>
-    /// <param name="hwndInput">Optional handle of an existing window to receive messages. If IntPtr.Zero, a hidden window is created.</param>
     public class SystemTray : IDisposable
     {
-        // Constructor
+        /// <summary>
+        /// Manages a system tray icon using P/Invoke.
+        /// Allows for use with or without an existing application window.
+        /// </summary>
+        /// <remarks>
+        /// Creates a new SystemTray instance.
+        /// </remarks>
+        /// <param name="trayContextMenu">Optional context menu to display on right-click. Can be null. Requires ThioWinUtils.TrayContextMenu</param>
+        /// <param name="iconHandle">Optional handle to an icon to display in the tray. If null or IntPtr.Zero, uses the application icon or creates a default icon depending on <paramref name="iconHandle"/>.</param>
+        /// <param name="useExeIcon">If true and iconHandle is null, attempts to use the application's executable icon.</param>
+        /// <param name="tooltipText">The tooltip text for the icon.</param>
+        /// <param name="restoreAction">Action to execute on left-click (e.g., show window). If null, will default to showing the hwndInput window if provided.</param>
+        /// <param name="hwndInput">Optional handle of an existing window to receive messages. If IntPtr.Zero, a hidden window is created.</param>
         public SystemTray(
             TrayContextMenu? trayContextMenu,
             IntPtr? iconHandle = null,
+            bool useExeIcon = true,
             string tooltipText = "",
             Action? restoreAction = null,
             IntPtr hwndInput = default
@@ -38,6 +40,25 @@ namespace ThioWinUtils // Change this to your desired namespace
             {
                 _iconHandle = iconHandle.Value;
                 _ownsIconHandle = false; // We don't own externally provided handles
+            }
+            else if (useExeIcon)
+            {
+                // Gets the path to the current process
+                string? exePath = Environment.ProcessPath;
+                if (exePath != null)
+                {
+                    Icon? appIcon = Icon.ExtractAssociatedIcon(exePath);
+                    if (appIcon != null)
+                    {
+                        _iconHandle = appIcon.Handle;
+                        _ownsIconHandle = true; // We created this handle, so we own it
+                    }
+                }
+                // If it's still null, load the default icon
+                if (_iconHandle == IntPtr.Zero)
+                {
+                    _iconHandle = CreateSimpleIcon();
+                }
             }
             else
             {
