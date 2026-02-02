@@ -405,16 +405,22 @@ namespace ThioWinUtils
             if (exitIndex >= 0)
                 insertPosition = Math.Min(insertPosition, exitIndex);
 
-            // If this is the first custom item and we're inserting before Restart/Exit, add a separator first
+            // If this is the first custom item and we're inserting before Restart/Exit, add the item and then a separator
             if (!_hasCustomItems && insertPosition < _menuItemSet._menuItems.Count)
             {
                 _menuItemSet.InsertMenuItem(insertPosition, text);
                 _menuItemSet.InsertSeparator(insertPosition + 1);
                 _hasCustomItems = true;
             }
+            else if (_hasCustomItems && insertPosition < _menuItemSet._menuItems.Count)
+            {
+                // If we already have custom items, insert before the separator (which is at insertPosition - 1)
+                _menuItemSet.InsertMenuItem(insertPosition - 1, text);
+            }
             else
             {
-                _menuItemSet.InsertMenuItem(insertPosition, text);
+                // No Restart/Exit options, just add to the end
+                _menuItemSet.AddMenuItem(text);
             }
         }
 
