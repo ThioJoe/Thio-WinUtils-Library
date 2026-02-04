@@ -44,7 +44,7 @@ namespace ThioWinUtils // Change this to your desired namespace
             else if (useExeIcon)
             {
                 // Gets the path to the current process
-                string? exePath = Environment.ProcessPath;
+                string? exePath = Process.GetCurrentProcess().MainModule?.FileName;
                 if (exePath != null)
                 {
                     Icon? appIcon = Icon.ExtractAssociatedIcon(exePath);
