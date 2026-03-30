@@ -73,7 +73,14 @@ public class ModernTaskDialog
     public event EventHandler HelpInvoked;
 
     // -------------------------------------------------------------------------
-    // State
+    // Results
+    // -------------------------------------------------------------------------
+    public bool VerificationChecked { get; private set; }
+    public int SelectedButtonId { get; private set; }
+    public int SelectedRadioButtonId { get; private set; }
+
+    // -------------------------------------------------------------------------
+    // Private State Trackers
     // -------------------------------------------------------------------------
 
     private IntPtr _activeDialogWindowHandle = IntPtr.Zero;
@@ -104,11 +111,6 @@ public class ModernTaskDialog
 
     // Icon state (stores the user's intended icon when using colored bars)
     private TaskDialogIcon _preservedMainIcon = TaskDialogIcon.None;
-
-    // Results
-    public bool VerificationChecked { get; private set; }
-    public int SelectedButtonId { get; private set; }
-    public int SelectedRadioButtonId { get; private set; }
 
     // -------------------------------------------------------------------------
     // Public Methods - Show
@@ -206,10 +208,25 @@ public class ModernTaskDialog
             {
                 // This exception occurs if the application is using the legacy (v5) ComCtl32.dll
                 throw new InvalidOperationException(
-                    "TaskDialog failed to load. This application is likely using Common Controls v5 (default), " +
-                    "but TaskDialog requires Version 6.\n\n" +
-                    "SOLUTION: You must add an 'app.manifest' to your project (Right Click the Project > Add > New Item > Application Manifest File).\n" +
-                    "In app.manifest, uncomment the 'Microsoft.Windows.Common-Controls' dependency section, which may be labelled \"Enable themes for Windows common controls and dialogs\".");
+                    "ThioWinUtils ModernTaskDialog failed to load. This application is likely using Common Controls v5 (default), " +
+                    "but ModernTaskDialog requires Version 6.\n\n" +
+                    "SOLUTION: You must add an 'app.manifest' to your project (Right Click the Project > Add > New Item > Show All Templates (if not already) > Application Manifest File). " +
+                    "In app.manifest, uncomment the 'Microsoft.Windows.Common-Controls' dependency section, which may be labelled \"Enable themes for Windows common controls and dialogs\"." +
+                    "\n\nSpecifically, uncomment this section:\n" +
+                    "  <dependency>\n" +
+                    "    <dependentAssembly>\n" +
+                    "      <assemblyIdentity\n" +
+                    "          type=\"win32\"\n" +
+                    "          name=\"Microsoft.Windows.Common-Controls\"\n" +
+                    "          version=\"6.0.0.0\"\n" +
+                    "          processorArchitecture=\"*\"\n" +
+                    "          publicKeyToken=\"6595b64144ccf1df\"\n" +
+                    "          language=\"*\"\n" +
+                    "        />\n" +
+                    "    </dependentAssembly>\n" +
+                    "  </dependency>"
+
+                    );
             }
 
             this.SelectedButtonId = buttonPressed;

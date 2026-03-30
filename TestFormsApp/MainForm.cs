@@ -19,6 +19,7 @@ namespace TestFormsApp
         {
             InitializeComponent();
 
+            // Create a TrayContextMenu instance to then use with SystemTray constructor
             ThioWinUtils.TrayContextMenu menu = new(
                 updateURL: "https://example.com/update",
                 appVersion: "1.0.0",
@@ -26,10 +27,14 @@ namespace TestFormsApp
                 exitAction: ExitApp
                 );
 
+            menu.AddCustomMenuItem("Example Custom Item", ShowModernDialogExample);
+
+            // SystemTray constructor to show an icon in the system tray.
+            // Also we pass in the optional TrayContextMenu object we created above so it is right clickable.
             SystemTray tray = new(
                 trayContextMenu: menu,
                 iconHandle: SystemIcons.Exclamation.Handle,
-                tooltipText: "Test App",
+                tooltipText: "Example Icon",
                 restoreAction: null,
                 hwndInput: IntPtr.Zero
                );
@@ -39,6 +44,11 @@ namespace TestFormsApp
         {
             Console.WriteLine("Tray icon closed. Exiting...");
             this.Close();
+        }
+
+        private void ShowModernDialogExample()
+        {
+            ThioWinUtils.ModernTaskDialog.Template.ShowSuccess("Success message title", "This is the main message", "This is additional info");
         }
     }
 }
