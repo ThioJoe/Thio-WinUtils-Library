@@ -140,39 +140,44 @@ namespace ThioWinUtils
             // Create the popup menu
             IntPtr hMenu = CreatePopupMenu();
 
-            // Add menu items
-            uint itemId = 1;
-            foreach (var item in menuItems)
+            try
             {
-                if (item.IsSeparator)
+                // Add menu items
+                uint itemId = 1;
+                foreach (var item in menuItems)
                 {
-                    InsertMenu(hMenu, itemId, MF_SEPARATOR, itemId, string.Empty);
+                    if (item.IsSeparator)
+                    {
+                        InsertMenu(hMenu, itemId, MF_SEPARATOR, itemId, string.Empty);
+                    }
+                    else if (item.IsDisabled)
+                    {
+                        InsertMenu(hMenu, itemId, MF_STRING | MF_DISABLED, itemId, item.Text);
+                    }
+                    else
+                    {
+                        InsertMenu(hMenu, itemId, MF_STRING, itemId, item.Text);
+                    }
+                    itemId++;
                 }
-                else if (item.IsDisabled)
-                {
-                    InsertMenu(hMenu, itemId, MF_STRING | MF_DISABLED, itemId, item.Text);
-                }
-                else
-                {
-                    InsertMenu(hMenu, itemId, MF_STRING, itemId, item.Text);
-                }
-                itemId++;
+
+                // Get the current cursor position to display the menu at that location, result comes out as pt parameter
+                GetCursorPos(out POINT pt);
+
+                // This is necessary to ensure the menu will close when the user clicks elsewhere
+                SetForegroundWindow(hwnd);
+
+                // Tells the OS to show the context menu and wait for a selection. But if the user clicks elsewhere, it will return 0.
+                uint flags = TPM_RIGHTBUTTON | TPM_LEFTBUTTON | TPM_RETURNCMD | TPM_LEFTALIGN | TPM_BOTTOMALIGN;
+                uint clickedItem = TrackPopupMenu(hMenu, flags, pt.X, pt.Y, 0, hwnd, IntPtr.Zero);
+
+                return clickedItem;
             }
-
-            // Get the current cursor position to display the menu at that location, result comes out as pt parameter
-            GetCursorPos(out POINT pt);
-
-            // This is necessary to ensure the menu will close when the user clicks elsewhere
-            SetForegroundWindow(hwnd);
-
-            // Tells the OS to show the context menu and wait for a selection. But if the user clicks elsewhere, it will return 0.
-            uint flags = TPM_RIGHTBUTTON | TPM_LEFTBUTTON | TPM_RETURNCMD | TPM_LEFTALIGN | TPM_BOTTOMALIGN;
-            uint clickedItem = TrackPopupMenu(hMenu, flags, pt.X, pt.Y, 0, hwnd, IntPtr.Zero);
-
-            // Clean up
-            DestroyMenu(hMenu);
-
-            return clickedItem;
+            finally
+            {
+                // Clean up
+                DestroyMenu(hMenu);
+            }
         }
 
         /// <summary>
