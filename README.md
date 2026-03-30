@@ -5,7 +5,7 @@ A C# .NET Framework library providing managed wrappers for native Windows UI com
 #### Notes:
 - This is a collection of C# class files. It's meant to be used by developers in their own apps, not end users.
 - For usage examples, see included test applications (`TestConsoleApp` and `TestFormsApp`).
-- `SystemTray.cs` and `ModernTaskDialog.cs` are completely standalone.
+- `SystemTray.cs` and `ModernTaskDialog.cs` are completely standalone, ready to be added to your solution and used.
   - `TrayContextMenu.cs` is not standalone. It's an optional add-on to be used with `SystemTray.cs`.
 
 ## Main Classes
