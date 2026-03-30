@@ -43,7 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ContextMenu.cs" />
+    <Compile Include="TrayContextMenu.cs" />
     <Compile Include="ModernTaskDialog.cs" />
     <Compile Include="SystemTray.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
