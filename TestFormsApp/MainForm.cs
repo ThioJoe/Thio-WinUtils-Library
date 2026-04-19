@@ -50,5 +50,19 @@ namespace TestFormsApp
         {
             ThioWinUtils.ModernTaskDialog.Template.ShowSuccess("Success message title", "This is the main message", "This is additional info");
         }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            ThioWinUtils.ModernTaskDialog testDialog = new()
+            {
+                CollapsedControlText = "Show More",
+                ExpandedControlText = "Show Less",
+                ExpandedInformation = "Test Info Expanded",
+                MainInstruction = "Main instruction Header",
+                Content = "Content Text"
+            };
+
+            testDialog.Show();
+        }
     }
 }
