@@ -13,6 +13,12 @@ A C# .NET Framework library providing managed wrappers for native Windows UI com
 ### `ModernTaskDialog`
 A wrapper around the native Windows `TaskDialogIndirect` API. It replaces standard message boxes with advanced dialogs supporting command links, radio buttons, progress bars, expanders, custom icons, verification checkboxes, and real-time state updates.
 
+#### Quick Templates
+For common use cases, the static `ModernTaskDialog.Template` class provides one-line factory methods to display common dialogs without needing to manually configure a new instance.
+* **Standard Messages:** `ShowInfo`, `ShowWarning`, `ShowError`, `ShowSuccess`
+* **Confirmations:** `ShowYesNo`, `ShowYesNoCancel`, `ShowOkCancel`, `ShowRetryCancel`
+* **Advanced Options:** `ShowCommandLinks`, `ShowRadioSelection`, `ShowException`, `ShowWithDontShowAgain`
+
 ### `SystemTray`
 Manages a system tray (notification area) icon utilizing P/Invoke and `Shell_NotifyIcon`. It handles the creation of a hidden message-only window or subclasses an existing window to process Win32 mouse events (left/right clicks) and taskbar restarts.
 
@@ -44,3 +50,11 @@ To use the `ModernTaskDialog` component, your executing application must be conf
 1. Add an `app.manifest` file to your executable project.
 2. Uncomment the `<dependency>` section for `Microsoft.Windows.Common-Controls` (version 6.0.0.0).
 3. Ensure `Application.EnableVisualStyles()` is called at application startup.
+
+## Licensing
+This repository is licensed under the GNU GPLv3 or later. Therefore, distributing software that incorporates this library may require the combined work to also be licensed under the GPLv3 or a later version.
+
+I am open to granting separate permissions or exceptions in some cases:
+- **Free/open-source projects with GPL-incompatible licenses:** Contact me and I may consider granting a free, project-specific, non-sublicensable exception allowing this library to be used in that project.
+  - Such an exception would not relicense this repository, and would not allow third parties to extract my code and use it under your project's license.
+- **Proprietary or other non-GPL commercial software:** Contact me to discuss a separate commercial license, which may be available for a one-time licensing fee.
