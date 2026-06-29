@@ -248,16 +248,19 @@ public class ModernTaskDialog
     // -------------------------------------------------------------------------
 
     // Check if dialog is active before sending messages
-    private void EnsureActive()
+    private bool IsActive()
     {
-        if (_activeDialogWindowHandle == IntPtr.Zero) return;
-        // We silently fail if not active, as these might be called before creation or after destruction in race conditions
+        // We will use to silently fail if not active, as these might be called before creation or after destruction in race conditions
+        if (_activeDialogWindowHandle != IntPtr.Zero)
+            return true;
+        else
+            return false;
     }
 
     // This effectively refreshes the page.
     private void RefreshPage(ref TASKDIALOGCONFIG newConfig)
     {
-        EnsureActive();
+        if (!IsActive()) return;
         SendMessage(_activeDialogWindowHandle, (uint)TaskDialogMessages.TDM_NAVIGATE_PAGE, IntPtr.Zero, ref newConfig);
     }
 
@@ -267,7 +270,7 @@ public class ModernTaskDialog
     /// </summary>
     private void NavigateWithStatePreservation()
     {
-        EnsureActive();
+        if (!IsActive()) return;
 
         // Capture the current icon before we modify anything
         TaskDialogIcon currentIcon = MainIcon;
@@ -324,7 +327,7 @@ public class ModernTaskDialog
     /// <summary>Updates text elements of the dialog while it is open.</summary>
     public void SetElementText(TaskDialogElements element, string text)
     {
-        EnsureActive();
+        if (!IsActive()) return;
         SendMessage(_activeDialogWindowHandle, (uint)TaskDialogMessages.TDM_SET_ELEMENT_TEXT, (IntPtr)element, text);
 
         // Track dynamic text changes for state preservation
@@ -334,21 +337,21 @@ public class ModernTaskDialog
     /// <summary>Clicks a button programmatically.</summary>
     public void ClickButton(int buttonId)
     {
-        EnsureActive();
+        if (!IsActive()) return;
         SendMessage(_activeDialogWindowHandle, (uint)TaskDialogMessages.TDM_CLICK_BUTTON, (IntPtr)buttonId, IntPtr.Zero);
     }
 
     /// <summary>Clicks a radio button programmatically.</summary>
     public void ClickRadioButton(int radioButtonId)
     {
-        EnsureActive();
+        if (!IsActive()) return;
         SendMessage(_activeDialogWindowHandle, (uint)TaskDialogMessages.TDM_CLICK_RADIO_BUTTON, (IntPtr)radioButtonId, IntPtr.Zero);
     }
 
     /// <summary>Enables or disables a button.</summary>
     public void EnableButton(int buttonId, bool enable)
     {
-        EnsureActive();
+        if (!IsActive()) return;
         SendMessage(_activeDialogWindowHandle, (uint)TaskDialogMessages.TDM_ENABLE_BUTTON, (IntPtr)buttonId, (IntPtr)(enable ? 1 : 0));
 
         // Track button enabled state for preservation
@@ -358,7 +361,7 @@ public class ModernTaskDialog
     /// <summary>Enables or disables a radio button.</summary>
     public void EnableRadioButton(int buttonId, bool enable)
     {
-        EnsureActive();
+        if (!IsActive()) return;
         SendMessage(_activeDialogWindowHandle, (uint)TaskDialogMessages.TDM_ENABLE_RADIO_BUTTON, (IntPtr)buttonId, (IntPtr)(enable ? 1 : 0));
 
         // Track radio button enabled state for preservation
@@ -368,14 +371,14 @@ public class ModernTaskDialog
     /// <summary>Updates the check state of the verification checkbox.</summary>
     public void ClickVerification(bool check, bool setFocus = false)
     {
-        EnsureActive();
+        if (!IsActive()) return;
         SendMessage(_activeDialogWindowHandle, (uint)TaskDialogMessages.TDM_CLICK_VERIFICATION, (IntPtr)(check ? 1 : 0), (IntPtr)(setFocus ? 1 : 0));
     }
 
     /// <summary>Sets the progress bar position (0-100 by default).</summary>
     public void SetProgressBarPosition(int position)
     {
-        EnsureActive();
+        if (!IsActive()) return;
         SendMessage(_activeDialogWindowHandle, (uint)TaskDialogMessages.TDM_SET_PROGRESS_BAR_POS, (IntPtr)position, IntPtr.Zero);
 
         // Track progress bar position for preservation
@@ -385,7 +388,7 @@ public class ModernTaskDialog
     /// <summary>Sets the progress bar range.</summary>
     public void SetProgressBarRange(short min, short max)
     {
-        EnsureActive();
+        if (!IsActive()) return;
         // MAKELPARAM logic: low word is min, high word is max
         int range = (max << 16) | (ushort)min;
         SendMessage(_activeDialogWindowHandle, (uint)TaskDialogMessages.TDM_SET_PROGRESS_BAR_RANGE, IntPtr.Zero, (IntPtr)range);
@@ -398,7 +401,7 @@ public class ModernTaskDialog
     /// <summary>Sets the state (Normal, Error, Paused) of the progress bar.</summary>
     public void SetProgressBarState(TaskDialogProgressBarState state)
     {
-        EnsureActive();
+        if (!IsActive()) return;
         SendMessage(_activeDialogWindowHandle, (uint)TaskDialogMessages.TDM_SET_PROGRESS_BAR_STATE, (IntPtr)state, IntPtr.Zero);
 
         // Track progress bar state for preservation
@@ -408,7 +411,7 @@ public class ModernTaskDialog
     /// <summary>Sets marquee mode on/off.</summary>
     public void SetProgressBarMarquee(bool isMarquee, int animationSpeedMilliseconds = 0)
     {
-        EnsureActive();
+        if (!IsActive()) return;
         SendMessage(_activeDialogWindowHandle, (uint)TaskDialogMessages.TDM_SET_MARQUEE_PROGRESS_BAR, (IntPtr)(isMarquee ? 1 : 0), IntPtr.Zero);
         SendMessage(_activeDialogWindowHandle, (uint)TaskDialogMessages.TDM_SET_PROGRESS_BAR_MARQUEE, (IntPtr)(isMarquee ? 1 : 0), (IntPtr)animationSpeedMilliseconds);
 
@@ -420,7 +423,7 @@ public class ModernTaskDialog
     /// <summary>Updates the main or footer icon.</summary>
     public void UpdateIcon(TaskDialogIconElement element, TaskDialogIcon icon)
     {
-        EnsureActive();
+        if (!IsActive()) return;
         SendMessage(_activeDialogWindowHandle, (uint)TaskDialogMessages.TDM_UPDATE_ICON, (IntPtr)element, (IntPtr)icon);
 
         // Track main icon changes for preservation during colored bar updates
@@ -433,21 +436,21 @@ public class ModernTaskDialog
     /// <summary>Updates the main or footer icon.</summary>
     public void UpdateIcon(TaskDialogIconElement element, TaskDialogBarColor barColor)
     {
-        EnsureActive();
+        if (!IsActive()) return;
         SendMessage(_activeDialogWindowHandle, (uint)TaskDialogMessages.TDM_UPDATE_ICON, (IntPtr)element, (IntPtr)barColor);
     }
 
     /// <summary>Updates the main or footer icon using a handle.</summary>
     public void UpdateIcon(TaskDialogIconElement element, IntPtr iconHandle)
     {
-        EnsureActive();
+        if (!IsActive()) return;
         SendMessage(_activeDialogWindowHandle, (uint)TaskDialogMessages.TDM_UPDATE_ICON, (IntPtr)element, iconHandle);
     }
 
     /// <summary>Adds a shield icon to the button (UAC).</summary>
     public void SetButtonElevationRequiredState(int buttonId, bool required)
     {
-        EnsureActive();
+        if (!IsActive()) return;
         SendMessage(_activeDialogWindowHandle, (uint)TaskDialogMessages.TDM_SET_BUTTON_ELEVATION_REQUIRED_STATE, (IntPtr)buttonId, (IntPtr)(required ? 1 : 0));
 
         // Track button shield state for preservation
@@ -466,7 +469,7 @@ public class ModernTaskDialog
     /// <param name="color">The new bar color to display.</param>
     public void UpdateColoredBar(TaskDialogBarColor color)
     {
-        EnsureActive();
+        if (!IsActive()) return;
 
         // Update the bar color property
         Coloredbar = color;
