@@ -496,10 +496,10 @@ namespace ThioWinUtils
                         ExitApp();
                         break;
                     case DefaultMenuItemNames.About:
-                        NativeMessageBox.ShowInfoMessage(_aboutMessage, "Help");
+                        NativeMessageBox.ShowInfoMessage(_aboutMessage, "About");
                         break;
                     case DefaultMenuItemNames.Help:
-                        NativeMessageBox.ShowInfoMessage(_helpMessage, "About");
+                        NativeMessageBox.ShowInfoMessage(_helpMessage, "Help");
                         break;
 
                     case null:
