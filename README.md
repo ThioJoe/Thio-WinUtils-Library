@@ -1,6 +1,6 @@
 # ThioWinUtils Library
 
-A C# .NET Framework library providing managed wrappers for native Windows UI components. It enables the implementation of Modern Task Dialogs, System Tray icons, and native Win32 Context Menus without external dependencies.
+A C# .NET Framework library of **drop-in-friendly** wrapper classes for traditionally cumbersome native Windows UI components. Designed to be as standalone as practical. Each main component is contained in a single `.cs` file, enabling **Modern Task Dialogs**, **System Tray icons**, and native **System Tray Context Menus** without external dependencies.
 
 #### Notes:
 - This is a collection of C# class files. It's meant to be used by developers in their own apps, not end users.
