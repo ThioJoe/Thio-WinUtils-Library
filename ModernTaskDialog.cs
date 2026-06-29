@@ -702,6 +702,11 @@ public class ModernTaskDialog
     // Native Structures & Enums
     // -------------------------------------------------------------------------
 
+    // NOTE: Pack=1 is indeed required for these particular structs.
+    // In CommCtrl.h in the Windows SDK where they are defined, they are defined between:
+    //      "#include <pshpack1.h>" which turns out 1-byte packing
+    //          and
+    //      "#include <poppack.h>" which turns 1-byte packing off again.
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1)]
     private struct TASKDIALOGCONFIG
     {
