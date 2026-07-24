@@ -1,10 +1,16 @@
-﻿using System;
+﻿// ModernTaskDialog.cs - Part of the ThioWinUtils Library
+// Project URL: https://github.com/ThioJoe/Thio-WinUtils-Library
+// See LICENSE.txt at the root of the above repository for license information.
+// 
+// Copyright (C) 2026 ThioJoe
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace ThioWinUtils;
 
