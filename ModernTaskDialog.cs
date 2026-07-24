@@ -1131,6 +1131,26 @@ public class ModernTaskDialog
         ShieldGrayBar = 65527
     }
 
+    /// <summary>
+    /// Additional potentially useful icon resource IDs. You can technically cast any int of an icon resource to TaskDialogIcon but see warning below.
+    /// 
+    /// CAUTION: plain integer IDs are resolved as icon resources from imageres.dll (when InstanceHandle is not set).
+    /// Unlike the official 65527-65535 values, these resource IDs are UNDOCUMENTED and have changed between
+    /// Windows versions, so a given ID may show a different image (or nothing) on other Windows releases -
+    /// test on every OS version you target before relying on one.
+    /// </summary>
+    public static class TaskDialogIconEx
+    {
+        /// <summary>
+        /// An invisible icon that still reserves the icon's layout space, so dialog contents keep the same position as with a real icon (unlike None, which shifts the contents left).
+        /// </summary>
+        public const TaskDialogIcon Blank = (TaskDialogIcon)17;
+        /// <summary> Standard white file icon </summary>
+        public const TaskDialogIcon File = (TaskDialogIcon)2;
+        /// <summary> Standard folder icon </summary>
+        public const TaskDialogIcon Folder = (TaskDialogIcon)3;
+    }
+
     public enum TaskDialogBarColor : int
     {
         Default = TaskDialogIcon.None,
