@@ -170,6 +170,12 @@ public class ModernTaskDialog
         // ---- Handle colored bar setup before populating icon config ----
         if (this.Coloredbar != TaskDialogBarColor.Default)
             SetupIconWithColoredBar(MainIcon, this.Coloredbar);
+        else
+            // Initialize the "icon currently on screen" tracker for dialogs that
+            // start without a colored bar, so that a colored bar added later via
+            // UpdateColoredBar() restores the correct icon after navigation.
+            // (SetupIconWithColoredBar initializes it for the colored-bar case.)
+            _preservedMainIcon = MainIcon;
 
         // Strings
         config.pszWindowTitle = Title;
@@ -384,10 +390,26 @@ public class ModernTaskDialog
         // Icon restoration is handled in TDN_NAVIGATED callback
     }
 
-    /// <summary>Updates text elements of the dialog while it is open.</summary>
+    /// <summary>
+    /// Updates text elements of the dialog while it is open.
+    /// If called while no dialog is open, the text is stored in the matching
+    /// configuration property (Content, MainInstruction, Footer,
+    /// ExpandedInformation) and takes effect the next time Show() is called.
+    /// </summary>
     public void SetElementText(TaskDialogElements element, string text)
     {
-        if (!IsActive()) return;
+        if (!IsOpen)
+        {
+            switch (element)
+            {
+                case TaskDialogElements.Content: Content = text; break;
+                case TaskDialogElements.MainInstruction: MainInstruction = text; break;
+                case TaskDialogElements.Footer: Footer = text; break;
+                case TaskDialogElements.ExpandedInformation: ExpandedInformation = text; break;
+            }
+            return;
+        }
+
         SendMessage(_activeDialogWindowHandle, (uint)TaskDialogMessages.TDM_SET_ELEMENT_TEXT, (IntPtr)element, text);
 
         // Track dynamic text changes for state preservation
@@ -480,30 +502,72 @@ public class ModernTaskDialog
         _preserveMarqueeSpeed = animationSpeedMilliseconds;
     }
 
-    /// <summary>Updates the main or footer icon.</summary>
+    /// <summary>
+    /// Updates the main or footer icon.
+    /// If called while no dialog is open, the icon is stored in the matching
+    /// property (MainIcon / FooterIcon) and takes effect the next time Show()
+    /// is called.
+    /// </summary>
     public void UpdateIcon(TaskDialogIconElement element, TaskDialogIcon icon)
     {
-        if (!IsActive()) return;
+        if (!IsOpen)
+        {
+            if (element == TaskDialogIconElement.Main) MainIcon = icon;
+            else FooterIcon = icon;
+            return;
+        }
+
         SendMessage(_activeDialogWindowHandle, (uint)TaskDialogMessages.TDM_UPDATE_ICON, (IntPtr)element, (IntPtr)icon);
 
-        // Track main icon changes for preservation during colored bar updates
+        // Keep the properties and colored-bar preservation state coherent
         if (element == TaskDialogIconElement.Main)
         {
+            MainIcon = icon;
             _preservedMainIcon = icon;
+        }
+        else
+        {
+            FooterIcon = icon;
         }
     }
 
-    /// <summary>Updates the main or footer icon.</summary>
+    /// <summary>
+    /// Updates the main or footer icon to a shield-with-bar variant.
+    /// If called while no dialog is open, this sets the Coloredbar property
+    /// instead, which takes effect the next time Show() is called. Note that
+    /// while a dialog is open, this only changes the icon image - the bar
+    /// color itself is fixed at page creation; use UpdateColoredBar to change
+    /// the bar of an open dialog.
+    /// </summary>
     public void UpdateIcon(TaskDialogIconElement element, TaskDialogBarColor barColor)
     {
-        if (!IsActive()) return;
+        if (!IsOpen)
+        {
+            if (element == TaskDialogIconElement.Main) Coloredbar = barColor;
+            return;
+        }
+
         SendMessage(_activeDialogWindowHandle, (uint)TaskDialogMessages.TDM_UPDATE_ICON, (IntPtr)element, (IntPtr)barColor);
     }
 
-    /// <summary>Updates the main or footer icon using a handle.</summary>
+    /// <summary>
+    /// Updates the main or footer icon using a handle.
+    /// If called while no dialog is open, the handle is stored in the matching
+    /// property (CustomMainIconHandle / CustomFooterIconHandle) and takes
+    /// effect the next time Show() is called. While a dialog is open, this
+    /// only works if it was created with the corresponding TDF_USE_HICON_MAIN
+    /// or TDF_USE_HICON_FOOTER flag (set automatically when the handle
+    /// properties are non-zero at Show() time).
+    /// </summary>
     public void UpdateIcon(TaskDialogIconElement element, IntPtr iconHandle)
     {
-        if (!IsActive()) return;
+        if (!IsOpen)
+        {
+            if (element == TaskDialogIconElement.Main) CustomMainIconHandle = iconHandle;
+            else CustomFooterIconHandle = iconHandle;
+            return;
+        }
+
         SendMessage(_activeDialogWindowHandle, (uint)TaskDialogMessages.TDM_UPDATE_ICON, (IntPtr)element, iconHandle);
     }
 
@@ -522,8 +586,10 @@ public class ModernTaskDialog
 
     /// <summary>
     /// Updates the colored bar while preserving the icon (if one was set).
-    /// Can be called while the dialog is active.
-    /// This recreates the dialog using TDM_NAVIGATE_PAGE to change the colored bar.
+    /// If called while no dialog is open, this sets the Coloredbar property,
+    /// which takes effect the next time Show() is called. If called while the
+    /// dialog is open, it recreates the page using TDM_NAVIGATE_PAGE to change
+    /// the colored bar immediately.
     /// Note: User interaction state (checkboxes, radio buttons, expander, etc.) is preserved.
     /// IMPORTANT: When calling this from a ButtonClicked handler, set
     /// e.CancelClose = true in that handler FIRST. Navigating from within
@@ -539,10 +605,11 @@ public class ModernTaskDialog
     /// <param name="color">The new bar color to display.</param>
     public void UpdateColoredBar(TaskDialogBarColor color)
     {
-        if (!IsActive()) return;
-
-        // Update the bar color property
+        // Update the bar color property. If no dialog is open yet, this is all
+        // that is needed - it takes effect the next time Show() is called.
         Coloredbar = color;
+
+        if (!IsOpen) return;
 
         // Capture the icon to restore after navigation. MainIcon always holds the
         // user's real icon while the dialog is open (the Created handler swaps it
