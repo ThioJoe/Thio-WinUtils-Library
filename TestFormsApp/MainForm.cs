@@ -75,15 +75,8 @@ namespace TestFormsApp
                 MainInstruction = "Example Main Instruction",
                 Content = "Example Content",
                 VerificationText = "Verification Text",
-                MainIcon = ModernTaskDialog.TaskDialogIcon.Information,
-
-                CommonButtons = TaskDialogCommonButtonFlags.TDCBF_YES_BUTTON |
-                            TaskDialogCommonButtonFlags.TDCBF_NO_BUTTON,
-
-                Flags = TaskDialogFlags.TDF_ALLOW_DIALOG_CANCELLATION |
-                    TaskDialogFlags.TDF_POSITION_RELATIVE_TO_WINDOW |
-                    TaskDialogFlags.TDF_SIZE_TO_CONTENT,
-
+                //MainIcon = ModernTaskDialog.TaskDialogIcon.Information,
+                MainIcon = (ModernTaskDialog.TaskDialogIcon)14,
                 ParentWindowHandle = default,
                 Coloredbar = TaskDialogBarColor.Yellow,
 
@@ -93,6 +86,39 @@ namespace TestFormsApp
             dialog.UpdateColoredBar(TaskDialogBarColor.Green);
 
             int buttonId = dialog.Show();
+
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            var dialog = new ModernTaskDialog
+            {
+                Title = "Sample Title",
+                MainInstruction = "Example Main Instruction",
+                Content = "Example Content",
+                VerificationText = "Verification Text",
+                MainIcon = ModernTaskDialog.TaskDialogIcon.Information,
+                ParentWindowHandle = default,
+                Coloredbar = TaskDialogBarColor.Yellow,
+            };
+
+            // Call show on a separate thread
+            Task.Run(() =>
+            {
+                int buttonId = dialog.Show();
+                Console.WriteLine($"Button clicked with ID: {buttonId}");
+            });
+
+            // While it's showing, update the icon back and forth every second
+            for (int i = 0; i < 5; i++)
+            {
+                Thread.Sleep(1000);
+                dialog.UpdateIcon(TaskDialogIconElement.Main, TaskDialogIcon.Error);
+                dialog.UpdateColoredBar(TaskDialogBarColor.Red);
+                Thread.Sleep(1000);
+                dialog.UpdateIcon(TaskDialogIconElement.Main, TaskDialogIcon.Information);
+                dialog.UpdateColoredBar(TaskDialogBarColor.Yellow);
+            }
 
         }
     }
