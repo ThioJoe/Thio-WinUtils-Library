@@ -30,6 +30,7 @@
         {
             this.label1 = new System.Windows.Forms.Label();
             this.button1 = new System.Windows.Forms.Button();
+            this.buttonExample2 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // label1
@@ -53,11 +54,22 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
+            // buttonExample2
+            // 
+            this.buttonExample2.Location = new System.Drawing.Point(307, 375);
+            this.buttonExample2.Name = "buttonExample2";
+            this.buttonExample2.Size = new System.Drawing.Size(174, 50);
+            this.buttonExample2.TabIndex = 2;
+            this.buttonExample2.Text = "Example 2";
+            this.buttonExample2.UseVisualStyleBackColor = true;
+            this.buttonExample2.Click += new System.EventHandler(this.buttonExample2_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.buttonExample2);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.label1);
             this.Name = "MainForm";
@@ -71,6 +83,7 @@
 
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button buttonExample2;
     }
 }
 

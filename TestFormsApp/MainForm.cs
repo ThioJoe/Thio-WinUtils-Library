@@ -10,6 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using ThioWinUtils;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Tab;
+using static ThioWinUtils.ModernTaskDialog;
 
 namespace TestFormsApp
 {
@@ -63,6 +65,35 @@ namespace TestFormsApp
             };
 
             testDialog.Show();
+        }
+
+        private void buttonExample2_Click(object sender, EventArgs e)
+        {
+            var dialog = new ModernTaskDialog
+            {
+                Title = "Sample Title",
+                MainInstruction = "Example Main Instruction",
+                Content = "Example Content",
+                VerificationText = "Verification Text",
+                MainIcon = ModernTaskDialog.TaskDialogIcon.Information,
+
+                CommonButtons = TaskDialogCommonButtonFlags.TDCBF_YES_BUTTON |
+                            TaskDialogCommonButtonFlags.TDCBF_NO_BUTTON,
+
+                Flags = TaskDialogFlags.TDF_ALLOW_DIALOG_CANCELLATION |
+                    TaskDialogFlags.TDF_POSITION_RELATIVE_TO_WINDOW |
+                    TaskDialogFlags.TDF_SIZE_TO_CONTENT,
+
+                ParentWindowHandle = default,
+                Coloredbar = TaskDialogBarColor.Yellow,
+
+            };
+
+            dialog.UpdateIcon(TaskDialogIconElement.Main, TaskDialogIcon.Error);
+            dialog.UpdateColoredBar(TaskDialogBarColor.Green);
+
+            int buttonId = dialog.Show();
+
         }
     }
 }
