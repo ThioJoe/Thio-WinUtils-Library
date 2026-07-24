@@ -383,6 +383,12 @@ public class ModernTaskDialog
             newConfig.hMainIcon = (CustomMainIconHandle != IntPtr.Zero) ? CustomMainIconHandle : (IntPtr)currentIcon;
         }
 
+        // Refresh the footer icon from the current property so runtime footer
+        // icon changes are applied by (and survive) page navigation. Without
+        // this, navigation restores the creation-time footer icon from
+        // _lastDialogConfig.
+        newConfig.hFooterIcon = (CustomFooterIconHandle != IntPtr.Zero) ? CustomFooterIconHandle : (IntPtr)FooterIcon;
+
         // Navigate to the new page
         _lastDialogConfig = newConfig;
         RefreshPage(ref newConfig);
@@ -619,6 +625,41 @@ public class ModernTaskDialog
         _preservedMainIcon = MainIcon;
 
         // Use the generic navigation method which handles all state preservation
+        NavigateWithStatePreservation();
+    }
+
+    /// <summary>
+    /// Updates the colored bar and optionally the main and footer icons in a
+    /// single page rebuild, avoiding the visible delay of calling UpdateIcon
+    /// and UpdateColoredBar back to back (each of which rebuilds the page).
+    /// If called while no dialog is open, the values are stored in the
+    /// matching properties and take effect the next time Show() is called.
+    /// IMPORTANT: When calling this from a ButtonClicked handler, set
+    /// e.CancelClose = true in that handler first (see UpdateColoredBar).
+    /// </summary>
+    /// <param name="newBarColor">The new bar color to display.</param>
+    /// <param name="newMainIcon">The new main icon to display (optional).</param>
+    /// <param name="newFooterIcon">The new footer icon to display (optional).</param>
+    public void UpdateIconAndColoredBar(TaskDialogBarColor newBarColor, TaskDialogIcon? newMainIcon = null, TaskDialogIcon? newFooterIcon = null)
+    {
+        // Update the properties. If no dialog is open, this is all that is
+        // needed - they take effect the next time Show() is called.
+        Coloredbar = newBarColor;
+        if (newMainIcon.HasValue)
+            MainIcon = newMainIcon.Value;
+        if (newFooterIcon.HasValue)
+            FooterIcon = newFooterIcon.Value;
+
+        if (!IsOpen) return;
+
+        // MainIcon now holds whichever icon should be on screen after the
+        // rebuild (the current one, or the newly requested one), so the
+        // post-navigation restore uses it. Keeping the property in sync also
+        // ensures later UpdateColoredBar calls don't revert to a stale icon.
+        _preservedMainIcon = MainIcon;
+
+        // Use the generic navigation method which handles all state
+        // preservation (it also refreshes the footer icon from FooterIcon).
         NavigateWithStatePreservation();
     }
 
